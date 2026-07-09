@@ -18,21 +18,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // FALL 2: Code vorhanden -> Absolut an deine Vercel-API senden
+    // FALL 2: Code vorhanden -> An die Vercel-API senden
     try {
-        // WICHTIG: Hier MUSS die absolute URL zu deiner funktionierenden API auf Vercel stehen!
+        // Vercel Serverless Functions werden OHNE .js am Ende aufgerufen!
         const apiUrl = 'https://phoenixmagie.vercel.app/api/extern/verify.js'; 
 
+        // Bei GET lassen wir Content-Type weg, um CORS-Preflight-Probleme zu verhindern
         const response = await fetch(`${apiUrl}?code=${encodeURIComponent(code)}`, {
             method: 'GET',
-            mode: 'cors', // Aktiviert CORS-Abfragen explizit
-            headers: { 
-                'Accept': 'application/json',
-                'Content-Type': 'application/json' 
-            }
+            mode: 'cors'
         });
 
-        // Falls die API ein Text-Fehler oder HTML zurückgibt statt JSON (z.B. 404/500)
         if (!response.ok) {
             const errorText = await response.text();
             let errorMessage = "Fehler beim Server-Abruf.";
@@ -64,6 +60,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadingState.style.display = 'none';
         errorState.style.display = 'block';
         errorTitle.innerText = "Verbindungsfehler";
-        errorDescription.innerHTML = `${err.message}<br><br><small style="color:var(--text-muted)">Hinweis: Stelle sicher, dass deine API auf Vercel CORS-Anfragen von GitHub Pages erlaubt.</small>`;
+        errorDescription.innerHTML = `${err.message}<br><br><small style="color:var(--text-muted)">Hinweis: Falls der Fehler bleibt, prüfe ob die Datei in Vercel unter "/api/extern/login.js" liegt und CORS-Header zurückgibt.</small>`;
     }
 });
