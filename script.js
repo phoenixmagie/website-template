@@ -5,33 +5,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtn = document.getElementById('logoutBtn');
     const navUserStatus = document.getElementById('navUserStatus');
 
-    // Prüfen, ob der Nutzer im LocalStorage eingeloggt hinterlegt ist
-    const storedUser = localStorage.getItem('phoenix_username');
+    // WICHTIG: Nutzt jetzt "currentUser", genau wie in der login.html definiert!
+    const storedUser = localStorage.getItem('currentUser');
 
     if (storedUser) {
-        // Logged-in State anzeigen
+        // Angemeldeten Zustand anzeigen
         if (guestView) guestView.style.display = 'none';
         if (userView) userView.style.display = 'block';
         if (usernameDisplay) usernameDisplay.innerText = storedUser;
 
-        // Navbar Status Update
+        // Status in der Navbar aktualisieren (inkl. Online-Indikator)
         if (navUserStatus) {
-            navUserStatus.innerHTML = `<span style="font-size:0.9rem; color:var(--text-muted)"><i class="fa-solid fa-circle" style="color:#10b981; font-size:0.6rem; margin-right:5px;"></i> ${storedUser}</span>`;
+            navUserStatus.innerHTML = `
+                <span style="font-size: 0.9rem; margin-left: 15px; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-circle" style="color: #4dff88; font-size: 0.6rem;"></i> 
+                    ${storedUser}
+                </span>`;
         }
     } else {
-        // Guest State anzeigen
+        // Gast-Zustand anzeigen
         if (guestView) guestView.style.display = 'block';
         if (userView) userView.style.display = 'none';
 
+        // Login-Button in der Navbar anzeigen
         if (navUserStatus) {
-            navUserStatus.innerHTML = `<a href="login.html" class="btn btn-secondary" style="padding: 0.4rem 1rem; font-size: 0.85rem;"><i class="fa-solid fa-right-to-bracket"></i> Login</a>`;
+            navUserStatus.innerHTML = `
+                <a href="login.html" class="btn btn-secondary" style="padding: 0.4rem 1rem; font-size: 0.85rem; text-decoration: none;">
+                    <i class="fa-solid fa-right-to-bracket"></i> Login
+                </a>`;
         }
     }
 
-    // Logout Logik
+    // Abmelde-Logik
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
-            localStorage.removeItem('phoenix_username');
+            // Löscht den richtigen Key aus dem Speicher
+            localStorage.removeItem('currentUser');
+            // Seite neu laden, um Ansicht zurückzusetzen
             window.location.reload();
         });
     }
