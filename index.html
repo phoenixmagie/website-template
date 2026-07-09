@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phoenixmagie - Template Home</title>
+    <title>Phoenixmagie - Authentifizierung</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -11,54 +11,106 @@
 
     <nav class="navbar">
         <a href="index.html" class="logo">Phoenixmagie<span>.</span></a>
-        <div class="nav-links">
-            <a href="index.html" class="active">Home</a>
-            <a href="#features">Features</a>
-            <div id="navUserStatus">
-                </div>
-        </div>
     </nav>
 
-    <main class="container">
-        <section class="welcome-card card">
-            <div id="guestView">
-                <i class="fa-solid fa-wand-magic-sparkles massive-icon"></i>
-                <h1>Willkommen bei <span class="gradient-text">Phoenixmagie</span></h1>
-                <p>Erkunde unser mächtiges Website-Template. Um alle exklusiven Features freizuschalten, logge dich bitte mit deinem Phoenixmagie-Konto ein.</p>
-                <a href="login.html" class="btn btn-primary">
-                    <i class="fa-solid fa-right-to-bracket"></i> Jetzt Einloggen
-                </a>
-            </div>
+    <main class="container status-wrapper">
+        <div id="loadingState" class="loader-container">
+            <i class="fa-solid fa-circle-notch spinner"></i>
+            <h2 id="loadingTitle">Sichere Verbindung wird aufgebaut...</h2>
+            <p id="loadingDescription" style="color: var(--text-muted); margin-top: 0.5rem;">Du wirst zum Phoenixmagie Secure Gate weitergeleitet.</p>
+        </div>
 
-            <div id="userView" style="display: none;">
-                <i class="fa-solid fa-fire massive-icon success-color"></i>
-                <h1>Willkommen zurück, <span id="usernameDisplay" class="gradient-text">[Username]</span>!</h1>
-                <p>Du bist erfolgreich über das sichere Phoenixmagie Gate verifiziert. Dir stehen nun alle Beispiel-Inhalte uneingeschränkt zur Verfügung.</p>
-                <button id="logoutBtn" class="btn btn-secondary">
-                    <i class="fa-solid fa-right-from-bracket"></i> Abmelden
-                </button>
-            </div>
-        </section>
-
-        <section id="features" class="features-grid">
-            <div class="card feature-item">
-                <i class="fa-solid fa-shield-halved feature-icon"></i>
-                <h3>Sicheres Gate</h3>
-                <p>Nutzt modernste kryptografische Verifizierung zum Schutz deiner digitalen Identität.</p>
-            </div>
-            <div class="card feature-item">
-                <i class="fa-solid fa-bolt feature-icon"></i>
-                <h3>Ultra Schnell</h3>
-                <p>Optimierte Ladezeiten und reaktionsschnelles Interface im Phoenix-Stil.</p>
-            </div>
-            <div class="card feature-item">
-                <i class="fa-solid fa-palette feature-icon"></i>
-                <h3>Modernes Design</h3>
-                <p>Deep Dark Interface mit eleganten Glow-Effekten und harmonischen Akzenten.</p>
-            </div>
-        </section>
+        <div id="errorState" class="alert-box" style="display: none;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 2.5rem; margin-bottom: 1rem; color: #ff4d4d;"></i>
+            <h3 id="errorTitle">Authentifizierungsfehler</h3>
+            <p id="errorDescription" style="font-size: 0.95rem; margin-top: 0.5rem;"></p>
+            <a href="index.html" class="btn btn-secondary" style="margin-top: 1.5rem;">Zurück zur Startseite</a>
+        </div>
     </main>
 
-    <script src="script.js"></script>
+    <div class="custom-cursor-dot"></div>
+    <div class="custom-cursor-outline"></div>
+
+    <script>
+        const PHOENIX_SSO_BASE = "https://phoenixmagie.vercel.app"; 
+        const currentUrl = window.location.href.split('?')[0];
+
+        const loadingState = document.getElementById('loadingState');
+        const loadingTitle = document.getElementById('loadingTitle');
+        const loadingDescription = document.getElementById('loadingDescription');
+        const errorState = document.getElementById('errorState');
+        const errorTitle = document.getElementById('errorTitle');
+        const errorDescription = document.getElementById('errorDescription');
+
+        function showError(title, msg) {
+            loadingState.style.display = 'none';
+            errorState.style.display = 'block';
+            errorTitle.innerText = title;
+            errorDescription.innerText = msg;
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const ssoCode = urlParams.get('code');
+
+        if (ssoCode) {
+            loadingTitle.innerText = "Konto wird verifiziert...";
+            loadingDescription.innerText = "Bitte warte einen Moment, während wir deine Daten prüfen.";
+
+            fetch(`${PHOENIX_SSO_BASE}/api/extern/login?code=${ssoCode}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        loadingTitle.innerText = "Erfolgreich eingeloggt!";
+                        loadingDescription.innerText = `Willkommen zurück, ${data.username}! Du wirst weitergeleitet...`;
+                        localStorage.setItem("currentUser", data.username);
+                        window.history.replaceState({}, document.title, currentUrl);
+                        setTimeout(() => { window.location.href = "index.html"; }, 1500);
+                    } else {
+                        showError("Phoenixmagie Fehler", data.error || "Der Validierungscode ist ungültig.");
+                        window.history.replaceState({}, document.title, currentUrl);
+                    }
+                })
+                .catch(err => {
+                    showError("Verbindungsfehler", "Es konnte keine Verbindung zu Phoenixmagie hergestellt werden.");
+                    window.history.replaceState({}, document.title, currentUrl);
+                });
+        } else {
+            setTimeout(() => {
+                window.location.href = `${PHOENIX_SSO_BASE}/user/extern/login?redirect=${encodeURIComponent(currentUrl)}`;
+            }, 1000);
+        }
+
+        // --- CUSTOM CURSOR JAVASCRIPT ---
+        const cursorDot = document.querySelector('.custom-cursor-dot');
+        const cursorOutline = document.querySelector('.custom-cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            // Der Punkt folgt der Maus exakt und sofort
+            cursorDot.style.transform = `translate3d(${posX}px, ${posY}px, 0)`;
+            
+            // Der Kreis folgt flüssig per CSS-Anpassung
+            cursorOutline.style.transform = `translate3d(${posX - 15}px, ${posY - 15}px, 0)`;
+        });
+
+        // Interaktionseffekt: Wenn man über klickbare Elemente hovert
+        const interactiveElements = document.querySelectorAll('a, button, .logo');
+        interactiveElements.forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursorDot.style.transform += ' scale(1.5)';
+                cursorOutline.style.background = 'rgba(99, 102, 241, 0.1)';
+                cursorOutline.style.borderColor = 'transparent';
+                cursorOutline.style.transform += ' scale(1.8)';
+            });
+            el.addEventListener('mouseleave', () => {
+                cursorDot.style.transform = cursorDot.style.transform.replace(' scale(1.5)', '');
+                cursorOutline.style.background = 'transparent';
+                cursorOutline.style.borderColor = 'var(--accent-color)';
+                cursorOutline.style.transform = cursorOutline.style.transform.replace(' scale(1.8)', '');
+            });
+        });
+    </script>
 </body>
 </html>
