@@ -1,2 +1,4 @@
-# website-template
-Template for Websites
+# $name
+
+Eigentümer: $owner
+Beschreibung: $description
