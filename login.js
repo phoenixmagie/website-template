@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // FALL 2: Code vorhanden -> Absolut an deine Vercel-API senden
     try {
         // WICHTIG: Hier MUSS die absolute URL zu deiner funktionierenden API auf Vercel stehen!
-        const apiUrl = 'https://phoenixmagie.vercel.app/api/extern/login.js'; 
+        const apiUrl = 'https://phoenixmagie.vercel.app/api/extern/verify.js'; 
 
         const response = await fetch(`${apiUrl}?code=${encodeURIComponent(code)}`, {
             method: 'GET',
