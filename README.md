@@ -1,4 +1,2 @@
-# $name
+# Website
 
-Eigentümer: $owner
-Beschreibung: $description
