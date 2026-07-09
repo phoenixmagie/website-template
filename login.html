@@ -16,18 +16,74 @@
     <main class="container status-wrapper">
         <div id="loadingState" class="loader-container">
             <i class="fa-solid fa-circle-notch spinner"></i>
-            <h2>Sichere Verbindung wird aufgebaut...</h2>
-            <p style="color: var(--text-muted); margin-top: 0.5rem;">Du wirst zum Phoenixmagie Secure Gate weitergeleitet.</p>
+            <h2 id="loadingTitle">Sichere Verbindung wird aufgebaut...</h2>
+            <p id="loadingDescription" style="color: var(--text-muted); margin-top: 0.5rem;">Du wirst zum Phoenixmagie Secure Gate weitergeleitet.</p>
         </div>
 
         <div id="errorState" class="alert-box" style="display: none;">
-            <i class="fa-solid fa-triangle-exclamation" style="font-size: 2.5rem; margin-bottom: 1rem;"></i>
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 2.5rem; margin-bottom: 1rem; color: #ff4d4d;"></i>
             <h3 id="errorTitle">Authentifizierungsfehler</h3>
             <p id="errorDescription" style="font-size: 0.95rem; margin-top: 0.5rem;"></p>
             <a href="index.html" class="btn btn-secondary" style="margin-top: 1.5rem;">Zurück zur Startseite</a>
         </div>
     </main>
 
-    <script src="login.js"></script>
+    <script>
+        const PHOENIX_SSO_BASE = "https://phoenixmagie.vercel.app"; 
+        const currentUrl = window.location.href.split('?')[0];
+
+        const loadingState = document.getElementById('loadingState');
+        const loadingTitle = document.getElementById('loadingTitle');
+        const loadingDescription = document.getElementById('loadingDescription');
+        const errorState = document.getElementById('errorState');
+        const errorTitle = document.getElementById('errorTitle');
+        const errorDescription = document.getElementById('errorDescription');
+
+        // Hilfsfunktion zur Anzeige von Fehlern
+        function showError(title, msg) {
+            loadingState.style.display = 'none';
+            errorState.style.display = 'block';
+            errorTitle.innerText = title;
+            errorDescription.innerText = msg;
+        }
+
+        // URL-Parameter auslesen (?code=...)
+        const urlParams = new URLSearchParams(window.location.search);
+        const ssoCode = urlParams.get('code');
+
+        if (ssoCode) {
+            // FALL 1: Nutzer kommt vom SSO-Server zurück und bringt einen Code mit
+            loadingTitle.innerText = "Konto wird verifiziert...";
+            loadingDescription.innerText = "Bitte warte einen Moment, während wir deine Daten prüfen.";
+
+            fetch(`${PHOENIX_SSO_BASE}/api/extern/login?code=${ssoCode}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        loadingTitle.innerText = "Erfolgreich eingeloggt!";
+                        loadingDescription.innerText = `Willkommen zurück, ${data.username}! Du wirst weitergeleitet...`;
+                        
+                        // Session lokal speichern
+                        localStorage.setItem("currentUser", data.username);
+
+                        // URL säubern und nach 1.5 Sekunden zur Startseite
+                        window.history.replaceState({}, document.title, currentUrl);
+                        setTimeout(() => { window.location.href = "index.html"; }, 1500);
+                    } else {
+                        showError("Phoenixmagie Fehler", data.error || "Der Validierungscode ist ungültig.");
+                        window.history.replaceState({}, document.title, currentUrl);
+                    }
+                })
+                .catch(err => {
+                    showError("Verbindungsfehler", "Es konnte keine Verbindung zu Phoenixmagie hergestellt werden.");
+                    window.history.replaceState({}, document.title, currentUrl);
+                });
+        } else {
+            // FALL 2: Die Seite wird direkt aufgerufen -> Weiterleitung zum Login-Server einleiten
+            setTimeout(() => {
+                window.location.href = `${PHOENIX_SSO_BASE}/user/extern/login?redirect=${encodeURIComponent(currentUrl)}`;
+            }, 1000); // 1 Sekunde Verzögerung für eine geschmeidige UX
+        }
+    </script>
 </body>
 </html>
