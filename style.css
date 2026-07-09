@@ -171,3 +171,49 @@ body {
     border-color: rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
 }
+/* --- CUSTOM CURSOR STYLES --- */
+
+/* Versteckt den Standard-Cursor auf dem Desktop */
+@media (pointer: fine) {
+    body, a, button {
+        cursor: none !important;
+    }
+
+    .custom-cursor-dot,
+    .custom-cursor-outline {
+        position: fixed;
+        top: 0;
+        left: 0;
+        pointer-events: none; /* Verhindert, dass der Cursor Klicks blockiert */
+        z-index: 9999;
+        border-radius: 50%;
+        transition: transform 0.08s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.2s, border-color 0.2s;
+        will-change: transform;
+    }
+
+    /* Der kleine Kern in der Mitte */
+    .custom-cursor-dot {
+        width: 6px;
+        height: 6px;
+        background-color: #fff;
+        box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    /* Der äußere, hinterherziehende Ring */
+    .custom-cursor-outline {
+        width: 30px;
+        height: 30px;
+        border: 1.5px solid var(--accent-color);
+        box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+        /* Etwas verzögerte Transition für den Nachzieheffekt */
+        transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.2s, border-color 0.2s;
+    }
+}
+
+/* Auf Touch-Geräten (Smartphones/Tablets) deaktivieren, da dort kein Cursor existiert */
+@media (pointer: coarse) {
+    .custom-cursor-dot,
+    .custom-cursor-outline {
+        display: none !important;
+    }
+}
