@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phoenixmagie - Authentifizierung</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="logo">Phoenixmagie<span>.</span></a>
+    </nav>
+
+    <main class="container status-wrapper">
+        <div id="loadingState" class="loader-container">
+            <i class="fa-solid fa-circle-notch spinner"></i>
+            <h2>Sichere Verbindung wird aufgebaut...</h2>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">Du wirst zum Phoenixmagie Secure Gate weitergeleitet.</p>
+        </div>
+
+        <div id="errorState" class="alert-box" style="display: none;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 2.5rem; margin-bottom: 1rem;"></i>
+            <h3 id="errorTitle">Authentifizierungsfehler</h3>
+            <p id="errorDescription" style="font-size: 0.95rem; margin-top: 0.5rem;"></p>
+            <a href="index.html" class="btn btn-secondary" style="margin-top: 1.5rem;">Zurück zur Startseite</a>
+        </div>
+    </main>
+
+    <script src="login.js"></script>
+</body>
+</html>
