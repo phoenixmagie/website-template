@@ -7,7 +7,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
 
-    const currentRedirectTarget = "https://phoenixmagie.github.io/website-template/login.html";
+    // Dynamische Erkennung der Domain für Vercel/Lokal
+    const currentRedirectTarget = window.location.origin + "/login.html";
     const externalLoginUrl = `https://phoenixmagie.vercel.app/user/extern/login?redirect=${encodeURIComponent(currentRedirectTarget)}`;
 
     // FALL 1: Kein Code vorhanden -> Weiterleitung zum Login-Gate
@@ -18,12 +19,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // FALL 2: Code vorhanden -> An die Vercel-API senden
+    // WICHTIG: Code sofort aus der URL-Leiste entfernen (Clean URL), 
+    // damit er beim Neuladen oder Zurückgehen nicht noch einmal abgefeuert wird.
+    window.history.replaceState({}, document.title, window.location.pathname);
+
+    // FALL 2: Code wurde abgefangen -> An die Vercel-API senden
     try {
-        // Vercel Serverless Functions werden OHNE .js am Ende aufgerufen!
         const apiUrl = 'https://phoenixmagie.vercel.app/api/extern/verify.js'; 
 
-        // Bei GET lassen wir Content-Type weg, um CORS-Preflight-Probleme zu verhindern
+        // API-Abfrage starten
         const response = await fetch(`${apiUrl}?code=${encodeURIComponent(code)}`, {
             method: 'GET',
             mode: 'cors'
@@ -43,22 +47,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const data = await response.json();
 
-        // Login erfolgreich
+        // Login erfolgreich im LocalStorage hinterlegen
         localStorage.setItem('phoenix_username', data.username);
 
+        // Erfolgsmeldung im UI anzeigen
         loadingState.innerHTML = `
             <i class="fa-solid fa-circle-check" style="font-size: 3.5rem; color: var(--success); margin-bottom: 1rem;"></i>
             <h2>Erfolgreich eingeloggt!</h2>
-            <p style="color: var(--text-muted);">Willkommen zurück, ${data.username}. Leite weiter...</p>
+            <p style="color: var(--text-muted); margin-top: 5px;">Willkommen zurück, ${data.username}. Leite weiter...</p>
         `;
 
+        // Expliziter Redirect auf die saubere Startseite ohne Parameter
         setTimeout(() => {
-            window.location.href = 'index.html';
+            window.location.replace(window.location.origin + '/index.html');
         }, 1000);
 
     } catch (err) {
         loadingState.style.display = 'none';
-        errorState.style.display = 'block';
+        errorState.classList.remove('hidden'); 
         errorTitle.innerText = "Verbindungsfehler";
         errorDescription.innerHTML = `${err.message}<br><br><small style="color:var(--text-muted)">Hinweis: Falls der Fehler bleibt, prüfe ob die Datei in Vercel unter "/api/extern/login.js" liegt und CORS-Header zurückgibt.</small>`;
     }
